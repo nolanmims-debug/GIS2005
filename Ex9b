@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Ex9b</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+   }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+   }
+
+    .container {
+      display: grid;
+      height: 100vh;
+      grid-template-rows: 60px 1fr 68px;
+   }
+
+    .header {
+      text-align: center;
+      background: steelblue;
+      color: black;
+      padding: 20px;
+   }
+
+    .content-body {
+      background-color: forestgreen;
+      margin: 0;
+      padding: 20px;
+      overflow-y: auto;
+      color: black;
+   }
+
+    .footer {
+      text-align: left;
+      background: steelblue;
+      color: black;
+      padding: 20px;
+   }
+ </style>
+</head>
+<body>
+ <div class="container">
+  <div class="header">
+   Example Vertical Fill
+  </div>
+  <div class="content-body">
+   Example Text
+  </div>
+  <div class="footer">
+   Example Footer
+  </div>
+  </div>
+</body>
+</html>
