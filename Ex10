@@ -44,10 +44,11 @@
     </p>
   `
 };      
-      const SimpleRenderer = await $arcgis.import("@arcgis/core/renderers/SimpleRenderer.js");
-      const myRenderer = new SimpleRenderer({
-        symbol: new PictureMarkerSymbol(myIcon)
-      });
+     const myIcon = {
+  url: "data/fire.png",
+  width: "24px",
+  height: "24px"
+};
       // Point to the URL location, and set up layer properties.
       const layer = new GeoJSONLayer({
         url: "data/wildfire.json",
