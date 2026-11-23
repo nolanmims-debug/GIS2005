@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lab 3 GIS Applications - Denver</title>
+    <link rel="stylesheet" href="grid-style.css" />
+    <link rel="stylesheet"
+     href="https://js.arcgis.com/5.1/esri/themes/light/main.css" />
+    <script type="module" src="https://js.arcgis.com/5.1/"></script>
+</head>
+<body>
+<div class="container">
+ <header>
+  <img src="denver-skyline.png"
+    style="display:block; margin:0 auto;"
+    width="700"
+    height="125"
+    alt="Denver Skyline">
+  </header>
+  <aside class="sidebar-l">
+   <div class="sidebar-l-top">
+    <arcgis-layer-list
+     reference-element="Lab3GISApplications">
+    </arcgis-layer-list>
+   </div>
+
+    Legend
+
+   <div class="sidebar-l-bottom">
+    <arcgis-legend
+     reference-element="Lab3GISApplications">
+    </arcgis-legend>
+   </div>
+
+   </aside>
+    <main>
+     <arcgis-map
+      item-id="9b2344df19d8419d9f0f8ecd94c4e2f4"
+      center="-104.95, 39.75"
+      zoom="14"
+      id="Lab3GISApplications">
+      <arcgis-zoom slot="top-left"></arcgis-zoom>
+      <arcgis-popup slot="popup"></arcgis-popup>
+     </arcgis-map>
+    </main>
+    <!-- Footer -->
+    <footer>
+     <span class="lblPreview">Footer</span>
+    </footer>
+   </div>
+<script type="module">
+ const [
+  FeatureLayer,
+  Graphic,
+  GraphicsLayer,
+  geometryEngine
+  ] = await $arcgis.import([
+   "@arcgis/core/layers/FeatureLayer.js",
+   "@arcgis/core/Graphic.js",
+   "@arcgis/core/layers/GraphicsLayer.js",
+   "@arcgis/core/geometry/geometryEngine.js"
+]);
+
+const viewElement = document.querySelector("arcgis-map");
+await viewElement.viewOnReady();
+
+const map = viewElement.map;
+const view = viewElement.view;
+
+const popupComponent =
+    viewElement.querySelector("arcgis-popup");
+
+const cityLayer = new FeatureLayer({
+    portalItem: {
+        id: "83d02398245f4eb59e3dc1a281ed0ab4"
+    },
+    title: "Cities",
+    outFields: ["*"]
+
+});
+map.add(cityLayer);
+const storeGraphicsLayer = new GraphicsLayer({
+ title: "Highlighted Stores"
+});
+map.add(storeGraphicsLayer);
+
+const extentGraphicsLayer = new GraphicsLayer({
+ title: "Query Bounding Box"
+});
+map.add(extentGraphicsLayer);
+
+await popupComponent.componentOnReady();
+
+viewElement.addEventListener("arcgisViewClick", async (event) => {
+ const { mapPoint } = event.detail;
+  storeGraphicsLayer.removeAll();
+  extentGraphicsLayer.removeAll();
+
+  const queryExtent = view.extent.clone();
+
+  const extentGraphic = new Graphic({
+        geometry: queryExtent,
+        symbol: {
+         type: "simple-fill",
+         color: [51, 51, 204, 0.2],
+         style: "solid",
+         outline: {
+          color: "blue",
+          width: 2}
+    }
+    });
+
+    extentGraphicsLayer.add(extentGraphic);
+    const query = cityLayer.createQuery();
+    query.geometry = queryExtent;
+    query.spatialRelationship = "intersects";
+    query.returnGeometry = true;
+    query.outFields = ["*"];
+    let names = "";
+    let minDist = Infinity;
+    let nearest = "";
+    try {
+     const results = await cityLayer.queryFeatures(query);
+     console.log(
+      "Found " + results.features.length +
+      " cities within the bounding box."
+        );
+
+        results.features.forEach((feature) => {
+            const highlightedFeature = new Graphic({
+             geometry: feature.geometry,
+             attributes: feature.attributes,
+              symbol: {
+              type: "simple-marker",
+              color: "red",
+              size: "10px",
+              outline: {
+               color: "white",
+               width: 1}
+             }
+            });
+            storeGraphicsLayer.add(highlightedFeature);
+            const featureName =
+            feature.attributes["CITY_NAME"];
+            names += featureName + ", ";
+            console.log("Feature name: " + featureName);
+            const dist = geometryEngine.distance(
+             mapPoint,
+             feature.geometry,
+             "miles"
+            );
+            if (dist !== null && dist < minDist) {
+                minDist = dist;
+                nearest = featureName;}
+        });
+        names = names.slice(0, -2);
+        console.log("Names of features found: " + names);
+        popupComponent.location = mapPoint;
+        popupComponent.heading = "Nearest City";
+        if (nearest !== "") {
+            popupComponent.content =
+                `Nearest city found: ${nearest} ` +
+                `(${minDist.toFixed(2)} miles)`;
+        } else {
+            popupComponent.content =
+                "No cities found within the bounding box.";
+        }
+        popupComponent.open = true;} 
+        catch (error) {
+        console.error("Query failed: ", error);}
+});
+</script>
+</body>
+</html>
+
+
