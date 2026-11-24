@@ -71,15 +71,16 @@ const view = viewElement.view;
 const popupComponent =
     viewElement.querySelector("arcgis-popup");
 
-const cityLayer = new FeatureLayer({
+const denver_food_storesLayer = new FeatureLayer({
     portalItem: {
         id: "83d02398245f4eb59e3dc1a281ed0ab4"
     },
-    title: "Cities",
+    title: "denver_food_stores",
     outFields: ["*"]
 
 });
-map.add(cityLayer);
+map.add(denver_food_storesLayer);
+
 const storeGraphicsLayer = new GraphicsLayer({
  title: "Highlighted Stores"
 });
@@ -112,7 +113,7 @@ viewElement.addEventListener("arcgisViewClick", async (event) => {
     });
 
     extentGraphicsLayer.add(extentGraphic);
-    const query = cityLayer.createQuery();
+    const query = denver_food_storesLayer.createQuery();
     query.geometry = queryExtent;
     query.spatialRelationship = "intersects";
     query.returnGeometry = true;
@@ -121,7 +122,7 @@ viewElement.addEventListener("arcgisViewClick", async (event) => {
     let minDist = Infinity;
     let nearest = "";
     try {
-     const results = await cityLayer.queryFeatures(query);
+     const results = await denver_food_storesLayer.queryFeatures(query);
      console.log(
       "Found " + results.features.length +
       " cities within the bounding box."
@@ -142,7 +143,7 @@ viewElement.addEventListener("arcgisViewClick", async (event) => {
             });
             storeGraphicsLayer.add(highlightedFeature);
             const featureName =
-            feature.attributes["CITY_NAME"];
+            feature.attributes["name"];
             names += featureName + ", ";
             console.log("Feature name: " + featureName);
             const dist = geometryEngine.distance(
@@ -157,14 +158,14 @@ viewElement.addEventListener("arcgisViewClick", async (event) => {
         names = names.slice(0, -2);
         console.log("Names of features found: " + names);
         popupComponent.location = mapPoint;
-        popupComponent.heading = "Nearest City";
+        popupComponent.heading = "Nearest Food Store";
         if (nearest !== "") {
             popupComponent.content =
-                `Nearest city found: ${nearest} ` +
+                `Nearest Food Store found: ${nearest} ` +
                 `(${minDist.toFixed(2)} miles)`;
         } else {
             popupComponent.content =
-                "No cities found within the bounding box.";
+                "No Food Stores found within the bounding box.";
         }
         popupComponent.open = true;} 
         catch (error) {
